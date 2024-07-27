@@ -1,20 +1,9 @@
-use axum::{Router, routing::get, response::{IntoResponse}, Json};
-use serde::Serialize;
+use axum::{Router, routing::get};
 
-#[derive(Serialize)]
-struct User {
-    name: String,
-}
+use crate::tasks;
 
-pub async fn list() -> impl IntoResponse {
-    let users = vec![
-        User {
-          name: "Felipe".to_string()
-      }  
-    ];
-    
-    Json(users)
-}
 pub fn get_routes() -> Router {
-    Router::new().route("/users", get(list))
+    Router::new()
+        .route("/users", get(tasks::user::list_users))
+        .route("/users/:id", get(tasks::user::get_user_info))
 }

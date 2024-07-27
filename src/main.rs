@@ -1,7 +1,12 @@
 use axum::{Json, Router, routing::get};
 use serde::Serialize;
 
+
+// mods
 mod routes;
+mod consumers;
+mod types;
+mod tasks;
 
 #[derive(Serialize)]
 struct PingResponse {
