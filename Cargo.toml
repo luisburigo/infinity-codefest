@@ -14,3 +14,4 @@ axum = "0.7.5"
 serde = { version = "1.0.204", features = ["derive"] }
 redis = { version = "0.26.0", features = ["tokio-comp"] }
 validator = { version = "0.16", features = ["derive"] }
+rust_decimal = "1.23.0"
