@@ -1,17 +1,32 @@
-use axum::{routing::get, Router};
-// use database::redis_connection::connect;
-// use modules::event::redis_listener::start_listener;
+use axum::{routing::get, Json, Router};
+use serde::Serialize;
 
-mod database;
-mod models;
-mod modules;
+// mods
+mod consumers;
+mod routes;
+mod tasks;
+mod types;
+
+#[derive(Serialize)]
+struct PingResponse {
+    message: String,
+}
+
+async fn ping() -> Json<PingResponse> {
+    Json(PingResponse {
+        message: "ping".to_string(),
+    })
+}
 
 #[tokio::main]
 async fn main() {
-    // build our application with a single route
-    let app = Router::new().route("/", get(|| async { "Hello, World!" }));
+    let app = Router::new()
+        .route("/", get(ping))
+        .merge(routes::user::get_routes())
+        .merge(routes::transaction::get_routes());
 
-    // run our app with hyper, listening globally on port 3000
+    // run our app with hyper, listening on port 3000
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
+
     axum::serve(listener, app).await.unwrap();
 }
