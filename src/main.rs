@@ -22,7 +22,8 @@ async fn ping() -> Json<PingResponse> {
 async fn main() {
     let app = Router::new()
       .route("/", get(ping))
-      .merge(routes::user::get_routes());
+      .merge(routes::user::get_routes())
+      .merge(routes::transaction::get_routes());
 
     // run our app with hyper, listening on port 3000
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
