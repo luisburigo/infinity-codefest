@@ -1,7 +1,10 @@
-use axum::{
-    routing::get,
-    Router,
-};
+use axum::{routing::get, Router};
+// use database::redis_connection::connect;
+// use modules::event::redis_listener::start_listener;
+
+mod database;
+mod models;
+mod modules;
 
 #[tokio::main]
 async fn main() {
