@@ -1,0 +1,186 @@
+{
+	"info": {
+		"_postman_id": "836c541a-de6b-40d6-b0c3-894e6add0f23",
+		"name": "CARANGUEJO DRIVEN DEVELOPMENT",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "8939818"
+	},
+	"item": [
+		{
+			"name": "User",
+			"item": [
+				{
+					"name": "Users",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{HOST}}/users",
+							"host": [
+								"{{HOST}}"
+							],
+							"path": [
+								"users"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Others",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"url": {
+							"raw": "{{HOST}}/users",
+							"host": [
+								"{{HOST}}"
+							],
+							"path": [
+								"users"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "User By Id",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{HOST}}/users/2",
+							"host": [
+								"{{HOST}}"
+							],
+							"path": [
+								"users",
+								"2"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "User Transactions",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{HOST}}/users/67e55044-10b1-426f-9247-bb680e5fe0c8/transactions",
+							"host": [
+								"{{HOST}}"
+							],
+							"path": [
+								"users",
+								"67e55044-10b1-426f-9247-bb680e5fe0c8",
+								"transactions"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Transaction info",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{HOST}}/users/67e55044-10b1-426f-9247-bb680e5fe0c8/transactions/67e55044-10b1-426f-9247-bb680e5fe0c8",
+							"host": [
+								"{{HOST}}"
+							],
+							"path": [
+								"users",
+								"67e55044-10b1-426f-9247-bb680e5fe0c8",
+								"transactions",
+								"67e55044-10b1-426f-9247-bb680e5fe0c8"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Ping",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{HOST}}/",
+							"host": [
+								"{{HOST}}"
+							],
+							"path": [
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Transactions by Status",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{HOST}}/users/67e55044-10b1-426f-9247-bb680e5fe0c8/transactions/status/Approved",
+							"host": [
+								"{{HOST}}"
+							],
+							"path": [
+								"users",
+								"67e55044-10b1-426f-9247-bb680e5fe0c8",
+								"transactions",
+								"status",
+								"Approved"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Transactions",
+			"item": [
+				{
+					"name": "All",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "HOST",
+			"value": "http://localhost:3000",
+			"type": "string"
+		}
+	]
+}
