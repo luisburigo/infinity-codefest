@@ -1,6 +1,6 @@
-use amiquip::{Connection, ConsumerMessage, ConsumerOptions};
-
+use amiquip::{Connection, ConsumerMessage, ConsumerOptions, FieldTable};
 use crate::types::user::event::UserEventMessage;
+
 
 /// # Examples
 ///
@@ -29,35 +29,40 @@ pub struct UserConsumer {
 impl UserConsumer {
     pub fn start(mut connection: Connection) -> Result<Self, amiquip::Error> {
         let channel = connection.open_channel(None)?;
-        Ok(UserConsumer {
-            connection,
-            channel,
-        })
+        Ok(UserConsumer { connection, channel })
     }
 
     pub fn subscribe<F>(&self, callback: F) -> Result<(), amiquip::Error>
     where
         F: Fn(UserEventMessage) + 'static,
     {
-        // Users queue
-        let queue = self.channel.queue_declare("users", Default::default())?;
+        let queue = self.channel.queue_declare("", Default::default())?;
+        self.channel.queue_bind(queue.name(), "users", "", FieldTable::new())?;
         let consumer = queue.consume(ConsumerOptions::default())?;
 
         for message in consumer.receiver().iter() {
             match message {
                 ConsumerMessage::Delivery(delivery) => {
                     let body = String::from_utf8_lossy(&delivery.body).to_string();
+
                     let message = UserEventMessage::from(body);
                     match message {
                         Ok(event) => {
-                            callback(event);
+                            match delivery.properties.app_id() {
+                                None => { callback(event) },
+                                Some(app_id) => {
+                                    if !app_id.eq("NG") {
+                                        callback(event)
+                                    }
+                                }
+                            }
                             delivery.ack(&self.channel)?;
-                        }
+                        },
                         Err(err) => {
                             eprintln!("Failed to parse message: {:?}", err);
                         }
                     }
-                }
+                },
                 other => {
                     eprintln!("Consumer ended: {:?}", other);
                     break;
