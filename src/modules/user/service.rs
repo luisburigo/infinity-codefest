@@ -1,12 +1,18 @@
-use ::redis::Commands;
+extern crate redis;
 
-use crate::database::redis::{self, redis_client};
+use std::io::Error;
+
+use redis::{Commands, RedisResult};
+use uuid::Uuid;
+
+use crate::database::redis::redis_client;
 use crate::types::user::types::User;
 
+//
 pub async fn create_user(payload: User) {
-    let db = redis_client().await?;
+    let mut db = redis_client();
 
-    let user_id = payload.id.to_string();
+    let user_id = payload.id.unwrap();
     let serialized_data = match serde_json::to_string(&payload) {
         Ok(data) => data,
         Err(e) => {
@@ -15,12 +21,23 @@ pub async fn create_user(payload: User) {
         }
     };
 
-    match db.set(&user_id, &serialized_data).await {
-        Ok(data) => {
-            println!("Change the event here type i guess... ?: {:?}", data)
-        }
-        Err(e) => {
-            eprintln!("Error while creating an user: {:?}", e);
-        }
-    };
+    let res: () = db
+        .set(&user_id.to_string(), &serialized_data)
+        .expect("error");
+
+    println!("{:?}", res)
+}
+
+pub async fn get_user(id: Uuid) -> Result<RedisResult<String>, Error> {
+    let mut conn = redis_client();
+
+    let user: RedisResult<String> = conn.get(id.to_string());
+    // let user: User = redis::cmd("GET")
+    //   .arg("user")
+    //   .query(&mut conn)
+    //   .expect("failed to execute GET for 'User'");
+
+    println!("value for 'user' = {:?}", user);
+
+    Ok(user)
 }
