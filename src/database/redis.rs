@@ -1,5 +1,4 @@
-use redis::{aio::MultiplexedConnection, AsyncCommands, Client};
-use std::error::Error;
+use redis::{ Client};
 
 pub async fn redis_client() -> redis::RedisResult<Client> {
     let client = Client::open("redis://127.0.0.1/")?;

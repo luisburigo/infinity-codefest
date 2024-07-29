@@ -2,8 +2,8 @@ use axum::{routing::get, Json, Router};
 use serde::Serialize;
 
 // mods
-mod consumers;
 mod database;
+mod consumers;
 mod handlers;
 mod models;
 mod modules;
@@ -29,7 +29,7 @@ async fn main() {
         .merge(routes::user::get_routes())
         .merge(routes::transaction::get_routes());
 
-    let client = match redis::redis_client().await {
+    let client = match database::redis::redis_client().await {
         Ok(client) => client,
         Err(e) => {
             eprintln!("Error creating Redis client: {:?}", e);
