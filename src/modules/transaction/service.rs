@@ -1,6 +1,8 @@
 use crate::database::redis;
 use crate::models::user::User;
 
+// to trigger commit
+
 pub async fn create_transaction(payload: User) {
     let client = match redis::redis_client().await {
         Ok(client) => client,
