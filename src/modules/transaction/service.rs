@@ -1,3 +1,5 @@
+use std::clone;
+
 use ::redis::Commands;
 use axum::http::Error;
 use redis::RedisResult;
@@ -52,6 +54,17 @@ pub fn get_user_transactions(id: String) -> Result<Vec<Transaction>, Error> {
 
         Ok(transactions.clone())
     }
+}
+
+pub fn get_transaction_by_id(id: String) -> Result<Transaction, serde_json::Error> {
+    let mut db = redis_client();
+
+    let transaction: String = db.get(id).unwrap();
+
+    let parsed_transaction: Result<Transaction, serde_json::Error> =
+        serde_json::from_str(&transaction.as_str());
+
+    parsed_transaction
 }
 
 // pub fn get_transaction_by_id(transaction_id: String, user_id: String) {

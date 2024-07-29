@@ -14,8 +14,8 @@ use crate::types::transaction::types::{Transaction, TransactionStatus};
 use crate::types::user::types::User;
 
 #[derive(Debug, Serialize)]
-struct ErrorResponse {
-    message: String,
+pub struct ErrorResponse {
+    pub message: String,
 }
 
 #[derive(Debug, Serialize)]
