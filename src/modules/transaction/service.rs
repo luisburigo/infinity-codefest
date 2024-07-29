@@ -1,4 +1,6 @@
 use ::redis::Commands;
+use axum::http::Error;
+use redis::RedisResult;
 
 use crate::consumers::transaction;
 use crate::database::redis::redis_client;
@@ -20,6 +22,36 @@ pub fn create_transaction(payload: Transaction) {
             eprintln!("Error while creating an transaction: {:?}", e);
         }
     };
+}
+
+pub fn get_user_transactions(id: String) -> Result<Vec<Transaction>, Error> {
+    let mut db = redis_client();
+    let tx_list = format!("{}{}", "transactions:".to_owned(), id);
+
+    let res: Vec<String> = db.lrange(tx_list, 0, -1).unwrap();
+
+    let mut transactions: Vec<Transaction> = Vec::new();
+
+    if res.len() == 0 {
+        Ok(transactions.clone())
+    } else {
+        for key in res {
+            let transaction: RedisResult<String> = db.get(key);
+
+            match transaction {
+                Ok(transaction) => {
+                    let parsed_transaction: Transaction =
+                        serde_json::from_str(transaction.as_str()).expect("error");
+
+                    transactions.push(parsed_transaction)
+                }
+
+                Err(_) => {}
+            }
+        }
+
+        Ok(transactions.clone())
+    }
 }
 
 // pub fn get_transaction_by_id(transaction_id: String, user_id: String) {
