@@ -7,11 +7,13 @@ use uuid::Uuid;
 use crate::database::redis::redis_client;
 use crate::types::user::types::User;
 
-pub async fn create_user(payload: User) {
+pub fn create_user(payload: User) {
     let mut db = redis_client();
 
     let user_id = serde_json::to_string(&payload.id).unwrap();
     let serialized_data = serde_json::to_string(&payload).unwrap();
+
+    eprintln!("serialized_data: {:?}", serialized_data);
 
     match db.set::<String, String, ()>(user_id, serialized_data) {
         Ok(data) => {
@@ -23,10 +25,10 @@ pub async fn create_user(payload: User) {
     };
 }
 
-pub async fn get_user(id: Uuid) -> Result<RedisResult<String>, Error> {
+pub fn get_user(id: Uuid) -> Result<RedisResult<String>, Error> {
     let mut conn = redis_client();
 
-    let user: RedisResult<String> = conn.get(id.to_string());
+    let user= conn.get(id.to_string());
     // let user: User = redis::cmd("GET")
     //   .arg("user")
     //   .query(&mut conn)

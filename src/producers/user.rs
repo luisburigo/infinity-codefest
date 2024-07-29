@@ -1,6 +1,6 @@
 use amiquip::{AmqpProperties, Channel, Connection, ExchangeDeclareOptions, ExchangeType, Publish};
 use crate::types::user::event::{CreatedUserEventPayload, PendingUserEventPayload};
-use crate::types::user::types::{User, UserStatus};
+use crate::types::user::types::{ToUser, User, UserStatus};
 
 pub struct UserProducer {
     channel: Channel,
