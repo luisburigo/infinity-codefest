@@ -10,14 +10,14 @@ use crate::types::user::types::User;
 pub fn create_user(payload: User) {
     let mut db = redis_client();
 
-    let user_id = serde_json::to_string(&payload.id).unwrap();
+    let user_id = payload.id.unwrap().to_string();
     let serialized_data = serde_json::to_string(&payload).unwrap();
 
     eprintln!("serialized_data: {:?}", serialized_data);
 
-    match db.set::<String, String, ()>(user_id, serialized_data) {
+    match db.set::<String, String, ()>(user_id.clone(), serialized_data) {
         Ok(data) => {
-            println!("Change the event here type I guess... ?: {:?}", data);
+            println!("User Created: {:?}", user_id.clone());
         }
         Err(e) => {
             eprintln!("Error while creating a user: {:?}", e);

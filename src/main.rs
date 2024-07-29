@@ -88,11 +88,11 @@ async fn main() {
                     let transaction = payload.to_transaction();
                     match transaction.clone().status.unwrap() {
                         TransactionStatus::Success => {
-                            println!("Transaction created: {:?}", transaction.id);
+                            // println!("Transaction created: {:?}", transaction.id);
                             transaction_producer.publish(transaction.clone()).expect("Failed to publish transaction");
                         }
                         TransactionStatus::Failed => {
-                            println!("Transaction failed: {:?}", transaction.id);
+                            // println!("Transaction failed: {:?}", transaction.id);
                         }
                         _ => {}
                     }

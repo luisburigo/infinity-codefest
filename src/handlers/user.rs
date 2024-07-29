@@ -1,13 +1,21 @@
 use axum::extract::Path;
+use axum::http::StatusCode;
 use axum::response::IntoResponse;
 use axum::Json;
 use chrono::Utc;
+use redis::RedisResult;
+use serde::Serialize;
 use uuid::Uuid;
 
 use crate::modules::user::service::get_user;
 use crate::types::currency::Currencies;
 use crate::types::transaction::types::{Transaction, TransactionStatus};
 use crate::types::user::types::User;
+
+#[derive(Debug, Serialize)]
+struct ErrorResponse {
+    message: String,
+}
 
 pub async fn list_users() -> impl IntoResponse {
     let users = vec![User {
@@ -26,16 +34,19 @@ pub async fn list_users() -> impl IntoResponse {
 }
 
 pub async fn get_user_info(Path(id): Path<Uuid>) -> impl IntoResponse {
-    println!("{}", id);
     let res = get_user(id).expect("error");
-    print!("{}", id);
-    // print!("{}", res.expect("error"));
 
-    let x = res.expect("error");
-
-    let json: User = serde_json::from_str(x.as_str()).expect("error");
-
-    Json(json)
+   match res {
+       Ok(value) => {
+           let json: User = serde_json::from_str(value.as_str()).expect("error");
+           (StatusCode::OK, Json(json).into_response())
+       }
+       Err(_) => {
+           (StatusCode::NOT_FOUND, Json(ErrorResponse {
+               message: "User not found".to_string(),
+           }).into_response())
+       }
+   }
 }
 
 pub async fn list_user_transactions(Path(id): Path<Uuid>) -> impl IntoResponse {
