@@ -5,7 +5,7 @@ use chrono::{DateTime, Utc};
 use serde::de::{Unexpected, Visitor};
 use crate::types::currency::Currencies;
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Clone)]
 pub enum UserStatus {
     Review,
     Success,
@@ -59,7 +59,7 @@ impl<'de> Serialize for UserStatus {
     }
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct User {
     pub id: Option<Uuid>,
     pub name: String,

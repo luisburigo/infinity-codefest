@@ -42,7 +42,7 @@ pub async fn list_user_transactions(Path(id): Path<Uuid>) -> impl IntoResponse {
         id: Some(Uuid::new_v4()),
         sender: Some(id),
         receiver: Some(Uuid::new_v4()),
-        amount: 1000,
+        amount: 1000.00,
         currency: Some(Currencies::USD),
         // This hash example is wrong, just for test
         hash: Uuid::new_v4().to_string(),
