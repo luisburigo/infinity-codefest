@@ -1,19 +1,7 @@
 use crate::database::redis;
 use crate::models::user::User;
 
-// to trigger commit
-
 pub async fn create_transaction(payload: User) {
-    let client = match redis::redis_client().await {
-        Ok(client) => client,
-        Err(e) => {
-            eprintln!("Error creating Redis client: {:?}", e);
-            return;
-        }
-    };
-
-    let db = redis::RedisDb::new(client);
-
     let user_id = payload.id.to_string();
     let serialized_data = match serde_json::to_string(&payload) {
         Ok(data) => data,

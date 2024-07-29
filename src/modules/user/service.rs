@@ -1,16 +1,10 @@
-use crate::database::redis;
-use crate::models::user::User;
+use ::redis::Commands;
+
+use crate::database::redis::{self, redis_client};
+use crate::types::user::types::User;
 
 pub async fn create_user(payload: User) {
-    let client = match redis::redis_client().await {
-        Ok(client) => client,
-        Err(e) => {
-            eprintln!("Error creating Redis client: {:?}", e);
-            return;
-        }
-    };
-
-    let db = redis::RedisDb::new(client);
+    let db = redis_client().await?;
 
     let user_id = payload.id.to_string();
     let serialized_data = match serde_json::to_string(&payload) {
@@ -21,7 +15,7 @@ pub async fn create_user(payload: User) {
         }
     };
 
-    match db.set_key_value(&user_id, &serialized_data).await {
+    match db.set(&user_id, &serialized_data).await {
         Ok(data) => {
             println!("Change the event here type i guess... ?: {:?}", data)
         }
