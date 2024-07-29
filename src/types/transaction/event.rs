@@ -1,10 +1,10 @@
-use serde::{de, Deserialize, Deserializer, Serialize};
-use std::fmt;
+use crate::types::currency::Currencies;
+use crate::types::transaction::types::{ToTransaction, Transaction, TransactionStatus};
 use chrono::{DateTime, Utc};
 use serde::de::{Unexpected, Visitor};
+use serde::{de, Deserialize, Deserializer, Serialize};
+use std::fmt;
 use uuid::Uuid;
-use crate::types::transaction::types::{ToTransaction, Transaction, TransactionStatus};
-use crate::types::currency::Currencies;
 
 #[derive(Debug, Clone)]
 pub enum TransactionEvents {
@@ -27,15 +27,15 @@ impl TransactionEventMessage {
             TransactionEvents::Request => {
                 let event = serde_json::from_str::<RequestTransactionEventPayload>(&payload)?;
                 Ok(TransactionEventMessage::Request(event))
-            },
+            }
             TransactionEvents::Created => {
                 let event = serde_json::from_str::<CreatedTransactionEventPayload>(&payload)?;
                 Ok(TransactionEventMessage::Created(event))
-            },
+            }
             TransactionEvents::Pending => {
                 let event = serde_json::from_str::<PendingTransactionEventPayload>(&payload)?;
                 Ok(TransactionEventMessage::Pending(event))
-            },
+            }
         }
     }
 }

@@ -1,9 +1,9 @@
-use std::fmt;
-use chrono::{DateTime, Utc};
-use serde::{de, Deserialize, Deserializer, Serialize};
-use serde::de::{Unexpected, Visitor};
-use uuid::Uuid;
 use crate::types::currency::Currencies;
+use chrono::{DateTime, Utc};
+use serde::de::{Unexpected, Visitor};
+use serde::{de, Deserialize, Deserializer, Serialize};
+use std::fmt;
+use uuid::Uuid;
 
 #[derive(Debug, Clone)]
 pub enum TransactionStatus {
@@ -84,14 +84,20 @@ pub struct Transaction {
 pub struct TransactionIdentifiers {
     pub user_id: Uuid,
     pub id: Uuid,
-    pub sender: Uuid
+    pub sender: Uuid,
 }
 
 #[derive(Debug, Serialize)]
 pub struct TransactionsByType {
     pub user_id: Uuid,
     pub count: i32,
-    pub transactions: Vec<Transaction>
+    pub transactions: Vec<Transaction>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct CreateTransactionPayload {
+    pub user_id: Uuid,
+    pub transaction: Transaction,
 }
 
 pub trait ToTransaction {

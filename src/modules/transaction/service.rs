@@ -1,22 +1,20 @@
-// use crate::database::redis;
-// use crate::models::user::User;
-// 
-// pub async fn create_transaction(payload: User) {
-//     let user_id = payload.id.to_string();
-//     let serialized_data = match serde_json::to_string(&payload) {
-//         Ok(data) => data,
-//         Err(e) => {
-//             eprintln!("Error serializing user data: {:?}", e);
-//             return;
-//         }
-//     };
-// 
-//     match db.set_key_value(&user_id, &serialized_data).await {
-//         Ok(data) => {
-//             println!("Change the event here type i guess... ?: {:?}", data)
-//         }
-//         Err(e) => {
-//             eprintln!("Error while creating an user: {:?}", e);
-//         }
-//     };
-// }
+use ::redis::Commands;
+
+use crate::database::redis::redis_client;
+use crate::types::transaction::types::CreateTransactionPayload;
+
+pub async fn create_transaction(payload: CreateTransactionPayload) {
+    let mut db = redis_client();
+
+    let user_id = serde_json::to_string(&payload.user_id).unwrap();
+    let serialized_data = serde_json::to_string(&payload).unwrap();
+
+    match db.sadd::<String, String, ()>(user_id, serialized_data) {
+        Ok(data) => {
+            println!("Change the event here type i guess... ?: {:?}", data)
+        }
+        Err(e) => {
+            eprintln!("Error while creating an transaction: {:?}", e);
+        }
+    };
+}

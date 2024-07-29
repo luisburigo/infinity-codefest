@@ -1,31 +1,26 @@
 extern crate redis;
 
-use std::io::Error;
-
+use axum::Error;
 use redis::{Commands, RedisResult};
 use uuid::Uuid;
 
 use crate::database::redis::redis_client;
 use crate::types::user::types::User;
 
-//
 pub async fn create_user(payload: User) {
     let mut db = redis_client();
 
-    let user_id = payload.id.unwrap();
-    let serialized_data = match serde_json::to_string(&payload) {
-        Ok(data) => data,
+    let user_id = serde_json::to_string(&payload.id).unwrap();
+    let serialized_data = serde_json::to_string(&payload).unwrap();
+
+    match db.set::<String, String, ()>(user_id, serialized_data) {
+        Ok(data) => {
+            println!("Change the event here type I guess... ?: {:?}", data);
+        }
         Err(e) => {
-            eprintln!("Error serializing user data: {:?}", e);
-            return;
+            eprintln!("Error while creating a user: {:?}", e);
         }
     };
-
-    let res: () = db
-        .set(&user_id.to_string(), &serialized_data)
-        .expect("error");
-
-    println!("{:?}", res)
 }
 
 pub async fn get_user(id: Uuid) -> Result<RedisResult<String>, Error> {

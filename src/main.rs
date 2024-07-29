@@ -1,25 +1,22 @@
-use amiquip::Connection;
-use axum::{Json, Router, routing::get};
-use serde::Serialize;
-use uuid::Uuid;
-use crate::consumers::transaction::TransactionConsumer;
 use crate::consumers::user::UserConsumer;
 use crate::producers::transaction::TransactionProducer;
 use crate::producers::user::UserProducer;
-use crate::types::transaction::event::TransactionEventMessage;
-use crate::types::transaction::types::{ToTransaction, TransactionStatus};
-use crate::types::user::event::{UserEventMessage};
+use crate::types::user::event::UserEventMessage;
 use crate::types::user::types::{ToUser, UserStatus};
+use amiquip::Connection;
+use axum::{routing::get, Json, Router};
+use modules::user::service::create_user;
+use serde::Serialize;
+use uuid::Uuid;
 
 // mods
-mod database;
 mod consumers;
+mod database;
 mod handlers;
-mod models;
 mod modules;
+mod producers;
 mod routes;
 mod types;
-mod producers;
 
 #[derive(Serialize)]
 struct PingResponse {
@@ -41,67 +38,33 @@ async fn main() {
     let user_producer = UserProducer::new(&mut connection);
     let user_consumer = UserConsumer::start(&mut connection).expect("Failed to start UserConsumer");
 
-    let transaction_producer = TransactionProducer::new(&mut connection);
-    let transaction_consumer = TransactionConsumer::start(&mut connection)
-        .expect("Failed to start TransactionConsumer");
-
-    tokio::spawn(async move {
-        user_consumer.subscribe(move |event| {
-            match event {
-                UserEventMessage::Request(payload) => {
-                    let mut user = payload.to_user();
-                    user.id = Some(Uuid::new_v4());
-                    user.status = Option::from(UserStatus::Review);
-                    user_producer.publish(user).expect("Pending Error");
-                }
-                UserEventMessage::Pending(payload) => {
-                    let user = payload.to_user();
-                    match user.clone().status.unwrap() {
-                        UserStatus::Success => {
-                            println!("User created: {:?}", user);
-                            user_producer.publish(user.clone()).expect("Success Error");
-                        }
-                        UserStatus::Failed => {
-                            println!("User failed: {:?}", user);
-                        }
-                        _ => {}
+    user_consumer
+        .subscribe(move |event| match event {
+            UserEventMessage::Request(payload) => {
+                let mut user = payload.to_user();
+                user.id = Some(Uuid::new_v4());
+                user.status = Option::from(UserStatus::Review);
+                user_producer.publish(user).expect("Pending Error");
+            }
+            UserEventMessage::Pending(payload) => {
+                let user = payload.to_user();
+                match user.clone().status.unwrap() {
+                    UserStatus::Success => {
+                        println!("User created: {:?}", user);
+                        create_user(payload.to_user());
+                        user_producer.publish(user.clone()).expect("Success Error");
                     }
-                }
-                event => {
-                    eprintln!("Unknown event: {:?}", event);
+                    UserStatus::Failed => {
+                        println!("User failed: {:?}", user);
+                    }
+                    _ => {}
                 }
             }
-        }).expect("Failed to subscribe UserConsumer");
-    });
-
-    tokio::spawn(async move {
-        transaction_consumer.subscribe(move |event| {
-            match event {
-                TransactionEventMessage::Request(payload) => {
-                    let mut transaction = payload.to_transaction();
-                    transaction.id = Some(Uuid::new_v4());
-                    transaction.status = Some(TransactionStatus::Review);
-                    transaction_producer.publish(transaction).expect("Failed to publish transaction");
-                }
-                TransactionEventMessage::Pending(payload) => {
-                    let transaction = payload.to_transaction();
-                    match transaction.clone().status.unwrap() {
-                        TransactionStatus::Success => {
-                            println!("Transaction created: {:?}", transaction.id);
-                            transaction_producer.publish(transaction.clone()).expect("Failed to publish transaction");
-                        }
-                        TransactionStatus::Failed => {
-                            println!("Transaction failed: {:?}", transaction.id);
-                        }
-                        _ => {}
-                    }
-                }
-                event => {
-                    eprintln!("Unknown event: {:?}", event);
-                }
+            event => {
+                eprintln!("Unknown event: {:?}", event);
             }
-        }).expect("Failed to subscribe TransactionConsumer");
-    });
+        })
+        .expect("Failed to subscribe UserConsumer");
 
     let app = Router::new()
         .route("/", get(ping))
