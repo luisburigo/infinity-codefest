@@ -7,7 +7,7 @@ use redis::RedisResult;
 use serde::Serialize;
 use uuid::Uuid;
 
-use crate::modules::user::service::get_user;
+use crate::modules::user::service::{get_user, get_all_users};
 use crate::types::currency::Currencies;
 use crate::types::transaction::types::{Transaction, TransactionStatus};
 use crate::types::user::types::User;
@@ -17,20 +17,29 @@ struct ErrorResponse {
     message: String,
 }
 
-pub async fn list_users() -> impl IntoResponse {
-    let users = vec![User {
-        id: None,
-        name: "Felipe".to_string(),
-        email: "".to_string(),
-        public_key: "".to_string(),
-        status: None,
-        balance: None,
-        currency: None,
-        created_at: Default::default(),
-        updated_at: Default::default(),
-    }];
+#[derive(Debug, Serialize)]
+struct ListResponse {
+    users: Vec<User>,
+    count: i32
+}
 
-    Json(users)
+pub async fn list_users() -> impl IntoResponse {
+    let res = get_all_users();
+
+    match res {
+        Ok(value) => {
+            (StatusCode::OK, Json(ListResponse {
+                // @TODO: Implement count
+                users: value,
+                count: 0
+            }).into_response())
+        }
+        Err(_) => {
+            (StatusCode::NOT_FOUND, Json(ErrorResponse {
+                message: "User not found".to_string(),
+            }).into_response())
+        }
+    }
 }
 
 pub async fn get_user_info(Path(id): Path<Uuid>) -> impl IntoResponse {

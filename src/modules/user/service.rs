@@ -29,12 +29,37 @@ pub fn get_user(id: Uuid) -> Result<RedisResult<String>, Error> {
     let mut conn = redis_client();
 
     let user= conn.get(id.to_string());
-    // let user: User = redis::cmd("GET")
-    //   .arg("user")
-    //   .query(&mut conn)
-    //   .expect("failed to execute GET for 'User'");
-
-    println!("value for 'user' = {:?}", user);
 
     Ok(user)
+}
+
+
+pub fn get_all_users() -> Result<Vec<User>, Error> {
+    let mut db = redis_client();
+
+    let res: Vec<String> = db.keys("*".to_string()).unwrap();
+
+    let mut users: Vec<User> = Vec::new();
+
+    if res.len() == 0 {
+        Ok(users.clone())
+    } else {
+        for key in res {
+            let user: RedisResult<String> = db.get(key);
+
+            match user {
+                Ok(user) => {
+                    let parsed_user: User = serde_json::from_str(user.as_str()).expect("error");
+
+                    users.push(parsed_user)
+                }
+
+                Err(_) => {
+
+                }
+            }
+        }
+
+        Ok(users.clone())
+    }
 }
