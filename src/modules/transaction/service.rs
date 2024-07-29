@@ -11,12 +11,12 @@ pub async fn create_transaction(payload: User) {
         }
     };
 
-    match db.set_key_value(&user_id, &serialized_data).await {
-        Ok(data) => {
-            println!("Change the event here type i guess... ?: {:?}", data)
-        }
-        Err(e) => {
-            eprintln!("Error while creating an user: {:?}", e);
-        }
-    };
+    // match db.set_key_value(&user_id, &serialized_data).await {
+    //     Ok(data) => {
+    //         println!("Change the event here type i guess... ?: {:?}", data)
+    //     }
+    //     Err(e) => {
+    //         eprintln!("Error while creating an user: {:?}", e);
+    //     }
+    // };
 }

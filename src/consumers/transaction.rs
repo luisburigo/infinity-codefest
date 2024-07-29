@@ -1,42 +1,22 @@
 use amiquip::{Connection, ConsumerMessage, ConsumerOptions, FieldTable};
-use crate::types::user::event::UserEventMessage;
+use crate::types::transaction::event::TransactionEventMessage;
 
-
-/// # Examples
-///
-/// ```rust
-///     let connection = Connection::insecure_open("amqp://guest:guest@localhost:5672")?;
-///
-///     let user_consumer = UserConsumer::start(connection)
-///             .expect("Failed to start UserConsumer");
-///     user_consumer.subscribe(|event| {
-///         match event {
-///             UserEventMessage::Requested(payload) => {
-///                 let user = payload.to_user();
-///                 println!("User: {:?}", user);
-///             },
-///             event => {
-///                 eprintln!("Unknown event: {:?}", event);
-///             }
-///         }
-///     })
-/// ```
-pub struct UserConsumer {
+pub struct TransactionConsumer {
     channel: amiquip::Channel,
 }
 
-impl UserConsumer {
+impl TransactionConsumer {
     pub fn start(mut connection: &mut Connection) -> Result<Self, amiquip::Error> {
         let channel = connection.open_channel(None)?;
-        Ok(UserConsumer { channel })
+        Ok(TransactionConsumer { channel })
     }
 
     pub fn subscribe<F>(&self, callback: F) -> Result<(), amiquip::Error>
     where
-        F: Fn(UserEventMessage) + 'static,
+        F: Fn(TransactionEventMessage) + 'static,
     {
         let queue = self.channel.queue_declare("", Default::default())?;
-        self.channel.queue_bind(queue.name(), "users", "", FieldTable::new())?;
+        self.channel.queue_bind(queue.name(), "transactions", "", FieldTable::new())?;
         let consumer = queue.consume(ConsumerOptions::default())?;
 
         for message in consumer.receiver().iter() {
@@ -44,7 +24,7 @@ impl UserConsumer {
                 ConsumerMessage::Delivery(delivery) => {
                     let body = String::from_utf8_lossy(&delivery.body).to_string();
 
-                    let message = UserEventMessage::from(body);
+                    let message = TransactionEventMessage::from(body);
                     match message {
                         Ok(event) => {
                             match delivery.properties.app_id() {

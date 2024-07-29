@@ -23,7 +23,7 @@ pub async fn list_transactions_by_status(Path((id, status)): Path<(Uuid, Transac
         id: Some(Uuid::new_v4()),
         sender: Some(Uuid::new_v4()),
         receiver: Some(Uuid::new_v4()),
-        amount: 1000,
+        amount: 1000 as f64,
         currency: Some(Currencies::USD),
         // This hash example is wrong, just for test
         hash: Uuid::new_v4().to_string(),
@@ -46,7 +46,7 @@ pub async fn list_transactions() -> impl IntoResponse {
       id: Some(Uuid::new_v4()),
       sender: Some(Uuid::new_v4()),
       receiver: Some(Uuid::new_v4()),
-      amount: 1000,
+      amount: 1000 as f64,
       currency: Some(Currencies::USD),
       // This hash example is wrong, just for test
       hash: Uuid::new_v4().to_string(),
