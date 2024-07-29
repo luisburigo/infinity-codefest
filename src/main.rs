@@ -29,14 +29,6 @@ async fn main() {
         .merge(routes::user::get_routes())
         .merge(routes::transaction::get_routes());
 
-    let client = match database::redis::redis_client().await {
-        Ok(client) => client,
-        Err(e) => {
-            eprintln!("Error creating Redis client: {:?}", e);
-            return;
-        }
-    };
-
     // run our app with hyper, listening on port 3000
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
 
