@@ -1,6 +1,6 @@
 use amiquip::{Connection, ConsumerMessage, ConsumerOptions};
-use crate::types::user::event::UserEventMessage;
 
+use crate::types::user::event::UserEventMessage;
 
 /// # Examples
 ///
@@ -29,13 +29,17 @@ pub struct UserConsumer {
 impl UserConsumer {
     pub fn start(mut connection: Connection) -> Result<Self, amiquip::Error> {
         let channel = connection.open_channel(None)?;
-        Ok(UserConsumer { connection, channel })
+        Ok(UserConsumer {
+            connection,
+            channel,
+        })
     }
 
     pub fn subscribe<F>(&self, callback: F) -> Result<(), amiquip::Error>
     where
         F: Fn(UserEventMessage) + 'static,
     {
+        // Users queue
         let queue = self.channel.queue_declare("users", Default::default())?;
         let consumer = queue.consume(ConsumerOptions::default())?;
 
@@ -48,12 +52,12 @@ impl UserConsumer {
                         Ok(event) => {
                             callback(event);
                             delivery.ack(&self.channel)?;
-                        },
+                        }
                         Err(err) => {
                             eprintln!("Failed to parse message: {:?}", err);
                         }
                     }
-                },
+                }
                 other => {
                     eprintln!("Consumer ended: {:?}", other);
                     break;

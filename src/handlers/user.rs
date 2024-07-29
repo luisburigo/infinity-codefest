@@ -34,7 +34,6 @@ pub async fn get_user_info(Path(id): Path<u32>) -> impl IntoResponse {
 }
 
 pub async fn list_user_transactions(Path(id): Path<Uuid>) -> impl IntoResponse {
-  // @TODO: Check this implementation
   let transactions = vec![
     Transaction {
       id: Some(Uuid::new_v4()),

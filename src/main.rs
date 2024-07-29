@@ -1,10 +1,10 @@
-use axum::{routing::get, Json, Router};
+use axum::{Json, Router, routing::get};
 use serde::Serialize;
 
 // mods
 mod consumers;
+mod handlers;
 mod routes;
-mod tasks;
 mod types;
 
 #[derive(Serialize)]
