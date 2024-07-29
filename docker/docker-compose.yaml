@@ -1,7 +1,7 @@
 services:
   rabbitmq:
     image: rabbitmq:3-management-alpine
-    container_name: "rabbitmq"
+    container_name: 'rabbitmq'
     ports:
       - 5672:5672
       - 15672:15672
@@ -12,13 +12,22 @@ services:
       - rabbitmq_docker_network
     restart: always
   codefest:
-    container_name: "codefest"
+    container_name: 'codefest'
     image: leonardocbsr/codefest:latest
     depends_on:
       - rabbitmq
     restart: always
     networks:
       - rabbitmq_docker_network
+  redis:
+    image: redis:alpine
+    container_name: 'redis'
+    ports:
+      - 6379:6379
+    networks:
+      - rabbitmq_docker_network
+    restart: always
+    platform: linux/amd64
 
 networks:
   rabbitmq_docker_network:

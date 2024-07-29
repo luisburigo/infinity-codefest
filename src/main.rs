@@ -1,12 +1,11 @@
-use axum::{Json, Router, routing::get};
+use axum::{routing::get, Json, Router};
 use serde::Serialize;
 
-
 // mods
-mod routes;
 mod consumers;
-mod types;
+mod routes;
 mod tasks;
+mod types;
 
 #[derive(Serialize)]
 struct PingResponse {
@@ -14,16 +13,17 @@ struct PingResponse {
 }
 
 async fn ping() -> Json<PingResponse> {
-    Json(PingResponse { message: "ping".to_string() })
+    Json(PingResponse {
+        message: "ping".to_string(),
+    })
 }
-
 
 #[tokio::main]
 async fn main() {
     let app = Router::new()
-      .route("/", get(ping))
-      .merge(routes::user::get_routes())
-      .merge(routes::transaction::get_routes());
+        .route("/", get(ping))
+        .merge(routes::user::get_routes())
+        .merge(routes::transaction::get_routes());
 
     // run our app with hyper, listening on port 3000
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
