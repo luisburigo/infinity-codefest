@@ -3,9 +3,7 @@ use axum::http::Error;
 use serde::Serialize;
 
 use redis::{RedisError, RedisResult};
-use secp256k1::{Message, PublicKey, Secp256k1};
-use secp256k1::ecdsa::Signature;
-use sha3::{Digest, Keccak256};
+use sha3::{Digest};
 use crate::database::redis::redis_client;
 use crate::modules::user::service::{create_user, get_user};
 use crate::types::transaction::types::{Transaction, TransactionStatus};

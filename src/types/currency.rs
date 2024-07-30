@@ -11,6 +11,18 @@ pub enum Currencies {
     BTC,
 }
 
+impl AsRef<[u8]> for Currencies {
+    fn as_ref(&self) -> &[u8] {
+        match self {
+            Currencies::IC => b"IC",
+            Currencies::USD => b"USD",
+            Currencies::BR => b"BR",
+            Currencies::ETH => b"ETH",
+            Currencies::BTC => b"BTC",
+        }
+    }
+}
+
 impl std::fmt::Display for Currencies {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {

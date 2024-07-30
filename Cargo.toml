@@ -16,5 +16,6 @@ redis = { version = "0.26.0", features = ["tokio-comp"] }
 validator = { version = "0.16", features = ["derive"] }
 rust_decimal = "1.23.0"
 sha3 = "0.11.0-pre.4"
-hex = "0.4.3"
-secp256k1 = "0.29.0"
+tiny-keccak = { version = "2.0.2", features = ['keccak'] }
+k256 = { version = "0.13.3", features = ["ecdsa"] }
+hex = "0.4"
