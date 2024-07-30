@@ -14,6 +14,13 @@ pub struct GetAllTxReturn {
     pub count: usize,
 }
 
+#[derive(Serialize)]
+pub struct TransactionsByStatus {
+    pub count: i32,
+    pub transactions: Vec<Transaction>,
+    pub user_id: String,
+}
+
 pub fn create_transaction(mut payload: Transaction) -> Result<Transaction, RedisError> {
     let mut db = redis_client();
 
@@ -185,14 +192,87 @@ pub fn get_user_transactions(id: String) -> Result<GetAllTxReturn, Error> {
     }
 }
 
-pub fn get_transaction_by_id(id: String) -> Result<Transaction, serde_json::Error> {
+pub fn get_transaction_by_id(user_id: String, tx_id: String) -> Result<Transaction, axum::Error> {
     let mut db = redis_client();
-    let formatted_tx_id = format!("{}{}", "transaction:".to_owned(), id);
 
-    let transaction: String = db.get(formatted_tx_id).unwrap();
+    let user_tx_list = format!("{}{}", "transactions:".to_owned(), user_id);
 
-    let parsed_transaction: Result<Transaction, serde_json::Error> =
-        serde_json::from_str(&transaction.as_str());
+    let res: Vec<String> = db.lrange(user_tx_list, 0, -1).unwrap();
 
-    parsed_transaction
+    if res.len() > 0 {
+        let haystack: Vec<String> = res.into_iter().collect();
+        if haystack.contains(&tx_id) {
+            let transaction: String = db.get(tx_id).unwrap();
+            let parsed_transaction: Transaction = serde_json::from_str(&transaction.as_str()).expect("error");
+
+            Ok(parsed_transaction)
+        } else {
+            Err(axum::Error::new("User or transaction not found"))
+        }
+    } else {
+        Err(axum::Error::new("User or transaction not found"))
+    }
 }
+
+impl PartialEq for TransactionStatus {
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (TransactionStatus::Success, TransactionStatus::Success) => true,
+            (TransactionStatus::Review, TransactionStatus::Review) => true,
+            (TransactionStatus::Failed, TransactionStatus::Failed) => true,
+            (TransactionStatus::Approved, TransactionStatus::Approved) => true,
+            _ => false
+        }
+    }
+}
+
+pub fn get_transactions_by_status(user_id: String, status: TransactionStatus) -> Result<TransactionsByStatus, Error> {
+    let mut db = redis_client();
+
+    let user_tx_list = format!("{}{}", "transactions:".to_owned(), user_id);
+
+    let res: Vec<String> = db.lrange(user_tx_list, 0, -1).unwrap();
+
+    let mut transactions: Vec<Transaction> = Vec::new();
+
+    let count = res.len();
+
+    if count == 0 {
+        Ok(TransactionsByStatus {
+            count: count as i32,
+            transactions: Vec::new(),
+            user_id: user_id.clone(),
+        })
+    } else {
+        for item in res {
+            let x = format!("{}{}", "transaction:".to_owned(), item);
+            let transaction: RedisResult<String> = db.get(x);
+
+            match transaction {
+                Ok(tx) => {
+                    let parsed_tx: Transaction = serde_json::from_str(tx.as_str()).expect("error");
+
+                    let is_same_status= match parsed_tx.clone().status {
+                        Some(parsed_tx_status) => parsed_tx_status == status,
+                        _ => false
+                    };
+
+                    if is_same_status {
+                        transactions.push(parsed_tx.clone())
+                    }
+                }
+
+                Err(_) => {}
+            }
+        }
+
+        Ok(TransactionsByStatus {
+            count: count as i32,
+            transactions: transactions.clone(),
+            user_id: user_id.clone(),
+        })
+    }
+}
+
+
+
