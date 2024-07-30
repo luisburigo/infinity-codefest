@@ -1,6 +1,5 @@
 use ::redis::Commands;
 use axum::http::Error;
-use redis::RedisResult;
 use serde::Serialize;
 
 use redis::{RedisError, RedisResult};
@@ -82,16 +81,17 @@ pub fn create_transaction(mut payload: Transaction) -> Result<Transaction, Redis
 
     // eprintln!("----------------------\n");
 
+    let tx_id = payload.id.unwrap();
+
     let sender_key = format!("{}{}", "transactions:".to_owned(), sender_id);
     let receiver_key = format!("{}{}", "transactions:".to_owned(), receiver_id);
-
-    let tx_id = payload.id.unwrap();
-    db.rpush::<String, String, ()>(sender_key.clone(), tx_id.to_string()).expect("Failed to add transaction to sender list");
-    db.rpush::<String, String, ()>(receiver_key.clone(), tx_id.to_string()).expect("Failed to add transaction to receiver list");
-
     let tx_key = format!("{}{}", "transaction:".to_owned(), tx_id);
+
+    db.rpush::<String, String, ()>(sender_key.clone(), tx_key.clone()).expect("Failed to add transaction to sender list");
+    db.rpush::<String, String, ()>(receiver_key.clone(), tx_key.clone()).expect("Failed to add transaction to receiver list");
+
     let serialized_data = serde_json::to_string(&payload).unwrap();
-    db.set::<String, String, ()>(tx_key, serialized_data).expect("Failed to add transaction to transaction list");
+    db.set::<String, String, ()>(tx_key.clone(), serialized_data).expect("Failed to add transaction to transaction list");
 
     Ok(payload)
 }
