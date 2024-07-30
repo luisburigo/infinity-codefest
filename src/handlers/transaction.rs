@@ -1,5 +1,7 @@
 use crate::handlers::user::ErrorResponse;
-use crate::modules::transaction::service::{get_transaction_by_id, get_transactions_by_status};
+use crate::modules::transaction::service::{
+    get_all_transactions, get_transaction_by_id, GetAllTxReturn, get_transactions_by_status
+};
 use crate::types::currency::Currencies;
 use crate::types::transaction::types::{
     Transaction, TransactionIdentifiers, TransactionStatus, TransactionsByType,
@@ -22,9 +24,9 @@ pub struct TransactionInfo {
 
 #[derive(Serialize)]
 pub struct TransactionsByStatus {
-    user_id: String,
-    transactions: Vec<Transaction>,
-    count: i32
+    pub count: i32,
+    pub transactions: Vec<Transaction>,
+    pub user_id: String,
 }
 
 pub async fn get_transaction_info(Path((id, tx)): Path<(Uuid, Uuid)>) -> impl IntoResponse {
@@ -43,7 +45,29 @@ pub async fn get_transaction_info(Path((id, tx)): Path<(Uuid, Uuid)>) -> impl In
         Err(_) => (
             StatusCode::NOT_FOUND,
             Json(ErrorResponse {
-                message: "User or transaction not found".to_string(),
+                message: "Transaction not found".to_string(),
+            })
+            .into_response(),
+        ),
+    }
+}
+
+pub async fn list_transactions() -> impl IntoResponse {
+    let res = get_all_transactions();
+
+    match res {
+        Ok(value) => (
+            StatusCode::OK,
+            Json(GetAllTxReturn {
+                count: value.count,
+                transactions: value.transactions,
+            })
+            .into_response(),
+        ),
+        Err(_) => (
+            StatusCode::NOT_FOUND,
+            Json(ErrorResponse {
+                message: "No transactions founded".to_string(),
             })
             .into_response(),
         ),
@@ -73,22 +97,4 @@ pub async fn list_transactions_by_status(
               .into_response(),
         ),
     }
-}
-
-pub async fn list_transactions() -> impl IntoResponse {
-    let transactions = vec![Transaction {
-        id: Some(Uuid::new_v4()),
-        sender: Some(Uuid::new_v4()),
-        receiver: Some(Uuid::new_v4()),
-        amount: 1000 as f64,
-        currency: Some(Currencies::USD),
-        // This hash example is wrong, just for test
-        hash: Uuid::new_v4().to_string(),
-        status: Some(TransactionStatus::Approved),
-        reason: Some("Initial transaction".to_string()),
-        created_at: Utc::now(),
-        updated_at: Utc::now(),
-    }];
-
-    Json(transactions)
 }
