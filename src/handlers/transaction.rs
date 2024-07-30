@@ -1,5 +1,7 @@
 use crate::handlers::user::ErrorResponse;
-use crate::modules::transaction::service::get_transaction_by_id;
+use crate::modules::transaction::service::{
+    get_all_transactions, get_transaction_by_id, GetAllTxReturn,
+};
 use crate::types::currency::Currencies;
 use crate::types::transaction::types::{
     Transaction, TransactionIdentifiers, TransactionStatus, TransactionsByType,
@@ -43,6 +45,28 @@ pub async fn get_transaction_info(Path((id, tx)): Path<(Uuid, Uuid)>) -> impl In
     }
 }
 
+pub async fn list_transactions() -> impl IntoResponse {
+    let res = get_all_transactions();
+
+    match res {
+        Ok(value) => (
+            StatusCode::OK,
+            Json(GetAllTxReturn {
+                count: value.count,
+                transactions: value.transactions,
+            })
+            .into_response(),
+        ),
+        Err(_) => (
+            StatusCode::NOT_FOUND,
+            Json(ErrorResponse {
+                message: "No transactions founded".to_string(),
+            })
+            .into_response(),
+        ),
+    }
+}
+
 pub async fn list_transactions_by_status(
     Path((id, status)): Path<(Uuid, TransactionStatus)>,
 ) -> impl IntoResponse {
@@ -63,24 +87,6 @@ pub async fn list_transactions_by_status(
         user_id: id,
         count: 1,
     };
-
-    Json(transactions)
-}
-
-pub async fn list_transactions() -> impl IntoResponse {
-    let transactions = vec![Transaction {
-        id: Some(Uuid::new_v4()),
-        sender: Some(Uuid::new_v4()),
-        receiver: Some(Uuid::new_v4()),
-        amount: 1000 as f64,
-        currency: Some(Currencies::USD),
-        // This hash example is wrong, just for test
-        hash: Uuid::new_v4().to_string(),
-        status: Some(TransactionStatus::Approved),
-        reason: Some("Initial transaction".to_string()),
-        created_at: Utc::now(),
-        updated_at: Utc::now(),
-    }];
 
     Json(transactions)
 }
