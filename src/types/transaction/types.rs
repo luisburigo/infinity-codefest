@@ -3,6 +3,9 @@ use chrono::{DateTime, Utc};
 use serde::de::{Unexpected, Visitor};
 use serde::{de, Deserialize, Deserializer, Serialize};
 use std::fmt;
+use k256::ecdsa::{Signature, VerifyingKey};
+use k256::ecdsa::signature::Verifier;
+use tiny_keccak::{Hasher, Keccak};
 use uuid::Uuid;
 
 #[derive(Debug, Clone)]
@@ -78,6 +81,43 @@ pub struct Transaction {
     pub reason: Option<String>,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
+}
+
+impl Transaction {
+    pub fn verify_signature(&self, public_key: String) -> Result<bool, Box<dyn std::error::Error>> {
+        let public_key_bytes = hex::decode(public_key)?;
+        let verifying_key = VerifyingKey::from_sec1_bytes(&public_key_bytes)?;
+
+        let signature_bytes = hex::decode(&self.hash)?;
+        let signature = Signature::from_der(&signature_bytes)?;
+
+        let calculated_hash = self.calculate_hash();
+        let calculated_hash_bytes = hex::decode(calculated_hash)?;
+
+        verifying_key.verify(calculated_hash_bytes.as_slice(), &signature).map(|_| true).map_err(Into::into)
+    }
+
+    pub fn calculate_hash(&self) -> String {
+        let mut hasher = Keccak::v256();
+
+        if let Some(sender) = &self.sender {
+            hasher.update(sender.as_bytes());
+        }
+        if let Some(receiver) = &self.receiver {
+            hasher.update(receiver.as_bytes());
+        }
+
+        hasher.update(&self.amount.to_le_bytes());
+        hasher.update(self.created_at.to_rfc3339().as_bytes());
+
+        if let Some(currency) = &self.currency {
+            hasher.update(currency.as_ref());
+        }
+
+        let mut output = [0u8; 32];
+        hasher.finalize(&mut output);
+        hex::encode(output)
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
