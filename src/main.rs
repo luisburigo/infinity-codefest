@@ -4,11 +4,12 @@ use crate::modules::user::service::create_user;
 use crate::producers::transaction::TransactionProducer;
 use crate::producers::user::UserProducer;
 use crate::types::transaction::event::TransactionEventMessage;
-use crate::types::transaction::types::{ToTransaction, TransactionStatus};
+use crate::types::transaction::types::{ToTransaction, Transaction, TransactionStatus};
 use crate::types::user::event::UserEventMessage;
 use crate::types::user::types::{ToUser, UserStatus};
 use amiquip::Connection;
 use axum::{routing::get, Json, Router};
+use redis::RedisError;
 use modules::transaction::service::create_transaction;
 use serde::Serialize;
 use uuid::Uuid;
@@ -57,10 +58,11 @@ async fn main() {
                         user_producer.publish(user).expect("Pending Error");
                     }
                     UserEventMessage::Pending(payload) => {
-                        let user = payload.to_user();
+                        let mut user = payload.to_user();
                         match user.clone().status.unwrap() {
                             UserStatus::Success => {
                                 // println!("User created: {:?}", user.id);
+                                user.status = Some(UserStatus::Approved);
                                 create_user(user.clone());
                                 user_producer.publish(user.clone()).expect("Success Error");
                             }
@@ -96,10 +98,15 @@ async fn main() {
                             TransactionStatus::Success => {
                                 // println!("Transaction created: {:?}", transaction.id);
 
-                                create_transaction(transaction.clone());
-                                transaction_producer
-                                    .publish(transaction.clone())
-                                    .expect("Failed to publish transaction");
+                                match create_transaction(transaction.clone()) {
+                                    Ok(transaction) => {
+                                        transaction_producer
+                                            .publish(transaction.clone());
+                                    }
+                                    Err(e) => {
+                                        eprintln!("Error while creating a transaction: {:?}", e);
+                                    }
+                                };
                             }
                             TransactionStatus::Failed => {
                                 // println!("Transaction failed: {:?}", transaction.id);

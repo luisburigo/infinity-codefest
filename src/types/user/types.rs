@@ -72,6 +72,12 @@ pub struct User {
     pub updated_at: DateTime<Utc>,
 }
 
+impl From<String> for User {
+    fn from(value: String) -> Self {
+        serde_json::from_str(&value).unwrap()
+    }
+}
+
 pub trait ToUser {
     fn to_user(&self) -> User;
 }

@@ -13,8 +13,6 @@ pub fn create_user(payload: User) {
     let user_id = payload.id.unwrap().to_string();
     let serialized_data = serde_json::to_string(&payload).unwrap();
 
-    eprintln!("serialized_data: {:?}", serialized_data);
-
     match db.set::<String, String, ()>(user_id.clone(), serialized_data) {
         Ok(data) => {
             println!("User Created: {:?}", user_id.clone());
@@ -25,12 +23,12 @@ pub fn create_user(payload: User) {
     };
 }
 
-pub fn get_user(id: Uuid) -> Result<RedisResult<String>, Error> {
+pub fn get_user(id: Uuid) -> RedisResult<String> {
     let mut conn = redis_client();
 
     let user= conn.get(id.to_string());
 
-    Ok(user)
+    user
 }
 
 

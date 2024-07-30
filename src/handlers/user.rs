@@ -69,7 +69,7 @@ pub async fn list_user_transactions(Path(id): Path<Uuid>) -> impl IntoResponse {
 }
 
 pub async fn get_user_info(Path(id): Path<Uuid>) -> impl IntoResponse {
-    let res = get_user(id).expect("error");
+    let res = get_user(id);
 
     match res {
         Ok(value) => {
