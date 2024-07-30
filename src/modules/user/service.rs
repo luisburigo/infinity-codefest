@@ -30,3 +30,34 @@ pub fn get_user(id: Uuid) -> RedisResult<String> {
 
     user
 }
+
+
+pub fn get_all_users() -> Result<Vec<User>, Error> {
+    let mut db = redis_client();
+
+    let res: Vec<String> = db.keys("*".to_string()).unwrap();
+
+    let mut users: Vec<User> = Vec::new();
+
+    if res.len() == 0 {
+        Ok(users.clone())
+    } else {
+        for key in res {
+            let user: RedisResult<String> = db.get(key);
+
+            match user {
+                Ok(user) => {
+                    let parsed_user: User = serde_json::from_str(user.as_str()).expect("error");
+
+                    users.push(parsed_user)
+                }
+
+                Err(_) => {
+
+                }
+            }
+        }
+
+        Ok(users.clone())
+    }
+}
