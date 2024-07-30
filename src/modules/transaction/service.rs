@@ -234,7 +234,6 @@ pub fn get_transactions_by_status(user_id: String, status: TransactionStatus) ->
     let res: Vec<String> = db.lrange(user_tx_list, 0, -1).unwrap();
 
     let mut transactions: Vec<Transaction> = Vec::new();
-
     let count = res.len();
 
     if count == 0 {
@@ -245,7 +244,11 @@ pub fn get_transactions_by_status(user_id: String, status: TransactionStatus) ->
         })
     } else {
         for item in res {
-            let x = format!("{}{}", "transaction:".to_owned(), item);
+            let x = if item.contains("transaction:") {
+                item
+            } else {
+                format!("{}{}", "transaction:".to_owned(), item)
+            };
             let transaction: RedisResult<String> = db.get(x);
 
             match transaction {
@@ -262,12 +265,14 @@ pub fn get_transactions_by_status(user_id: String, status: TransactionStatus) ->
                     }
                 }
 
-                Err(_) => {}
+                Err(e) => {
+                    eprintln!("Error while getting transaction: {:?}", e);
+                }
             }
         }
 
         Ok(TransactionsByStatus {
-            count: count as i32,
+            count: transactions.len() as i32,
             transactions: transactions.clone(),
             user_id: user_id.clone(),
         })
