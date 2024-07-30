@@ -97,7 +97,8 @@ async fn main() {
                             TransactionStatus::Success => {
                                 // println!("Transaction created: {:?}", transaction.id);
 
-                                create_transaction(transaction.clone());
+                                create_transaction(transaction.clone())
+                                    .expect("Failed to create transaction");
                                 transaction_producer
                                     .publish(transaction.clone())
                                     .expect("Failed to publish transaction");

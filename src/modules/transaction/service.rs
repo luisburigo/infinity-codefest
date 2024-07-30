@@ -31,14 +31,14 @@ pub fn create_transaction(mut payload: Transaction) -> Result<Transaction, Redis
     let transaction_amount_usd = transaction_currency.to_usd(transaction_amount);
     let has_balance = sender_balance_usd >= transaction_amount_usd;
 
-    eprintln!("\n----------------------");
-    eprintln!("Sending transaction:");
-    eprintln!("TX Currency: {:?}", transaction_currency);
-    eprintln!("TX Amount: {:?}", transaction_amount);
-    eprintln!("TX Amount USD: {:?}", transaction_amount_usd);
-    eprintln!("Sender Currency: {:?}", sender_currency);
-    eprintln!("Sender Balance: {:?}", sender_balance);
-    eprintln!("Sender Balance USD: {:?}", sender_balance_usd);
+    // eprintln!("\n----------------------");
+    // eprintln!("Sending transaction:");
+    // eprintln!("TX Currency: {:?}", transaction_currency);
+    // eprintln!("TX Amount: {:?}", transaction_amount);
+    // eprintln!("TX Amount USD: {:?}", transaction_amount_usd);
+    // eprintln!("Sender Currency: {:?}", sender_currency);
+    // eprintln!("Sender Balance: {:?}", sender_balance);
+    // eprintln!("Sender Balance USD: {:?}", sender_balance_usd);
 
     match has_balance {
         true => {
@@ -46,7 +46,7 @@ pub fn create_transaction(mut payload: Transaction) -> Result<Transaction, Redis
             let sender_balance_usd = sender_balance_usd - transaction_amount_usd;
             sender.balance = Some(sender_currency.from_usd(sender_balance_usd));
             create_user(sender.clone());
-            eprintln!("Sender New Balance: {:?}", sender.balance);
+            // eprintln!("Sender New Balance: {:?}", sender.balance);
 
             // Update receiver balance
             let receiver_balance = receiver.balance.unwrap();
@@ -60,9 +60,10 @@ pub fn create_transaction(mut payload: Transaction) -> Result<Transaction, Redis
             // Update transaction status
             payload.status = Some(TransactionStatus::Approved);
 
-            eprintln!("Receiver Currency: {:?}", receiver_currency);
-            eprintln!("Receiver Balance: {:?}", receiver_balance);
-            eprintln!("Receiver New Balance: {:?}", receiver.balance);
+            eprintln!("Transaction approved!");
+            // eprintln!("Receiver Currency: {:?}", receiver_currency);
+            // eprintln!("Receiver Balance: {:?}", receiver_balance);
+            // eprintln!("Receiver New Balance: {:?}", receiver.balance);
         }
         false => {
             payload.status = Some(TransactionStatus::Failed);
@@ -70,7 +71,7 @@ pub fn create_transaction(mut payload: Transaction) -> Result<Transaction, Redis
         }
     }
 
-    eprintln!("----------------------\n");
+    // eprintln!("----------------------\n");
 
     let sender_key = format!("{}{}", "transactions:".to_owned(), sender_id);
     let receiver_key = format!("{}{}", "transactions:".to_owned(), receiver_id);
@@ -79,8 +80,9 @@ pub fn create_transaction(mut payload: Transaction) -> Result<Transaction, Redis
     db.rpush::<String, String, ()>(sender_key.clone(), tx_id.to_string()).expect("Failed to add transaction to sender list");
     db.rpush::<String, String, ()>(receiver_key.clone(), tx_id.to_string()).expect("Failed to add transaction to receiver list");
 
+    let tx_key = format!("{}{}", "transaction:".to_owned(), tx_id);
     let serialized_data = serde_json::to_string(&payload).unwrap();
-    db.set::<String, String, ()>(tx_id.to_string(), serialized_data).expect("Failed to add transaction to transaction list");
+    db.set::<String, String, ()>(tx_key, serialized_data).expect("Failed to add transaction to transaction list");
 
     Ok(payload)
 }
