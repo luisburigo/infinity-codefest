@@ -11,6 +11,18 @@ pub enum Currencies {
     BTC,
 }
 
+impl std::fmt::Display for Currencies {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            Currencies::IC => write!(f, "IC"),
+            Currencies::USD => write!(f, "USD"),
+            Currencies::BR => write!(f, "BR"),
+            Currencies::ETH => write!(f, "ETH"),
+            Currencies::BTC => write!(f, "BTC"),
+        }
+    }
+}
+
 impl<'de> Deserialize<'de> for Currencies {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where

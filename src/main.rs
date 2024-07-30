@@ -10,6 +10,7 @@ use crate::types::user::types::{ToUser, UserStatus};
 use amiquip::Connection;
 use axum::{routing::get, Json, Router};
 use redis::RedisError;
+use secp256k1::{Error, PublicKey, Secp256k1};
 use modules::transaction::service::create_transaction;
 use serde::Serialize;
 use uuid::Uuid;
@@ -62,7 +63,7 @@ async fn main() {
                         match user.clone().status.unwrap() {
                             UserStatus::Success => {
                                 // println!("User created: {:?}", user.id);
-                                user.status = Some(UserStatus::Approved);
+                                // user.status = Some(UserStatus::Approved);
                                 create_user(user.clone());
                                 user_producer.publish(user.clone()).expect("Success Error");
                             }

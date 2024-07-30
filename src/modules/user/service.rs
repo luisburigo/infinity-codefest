@@ -5,12 +5,15 @@ use redis::{Commands, RedisResult};
 use uuid::Uuid;
 
 use crate::database::redis::redis_client;
-use crate::types::user::types::User;
+use crate::types::user::types::{User, UserStatus};
 
 pub fn create_user(payload: User) {
     let mut db = redis_client();
 
-    let user_id = payload.id.unwrap().to_string();
+    let mut user = payload.clone();
+    user.status = Some(UserStatus::Approved);
+
+    let user_id = user.id.unwrap().to_string();
     let serialized_data = serde_json::to_string(&payload).unwrap();
 
     match db.set::<String, String, ()>(user_id.clone(), serialized_data) {
@@ -47,9 +50,12 @@ pub fn get_all_users() -> Result<Vec<User>, Error> {
 
             match user {
                 Ok(user) => {
-                    let parsed_user: User = serde_json::from_str(user.as_str()).expect("error");
-
-                    users.push(parsed_user)
+                    match serde_json::from_str(user.as_str()) {
+                        Ok(parsed_user) => {
+                            users.push(parsed_user)
+                        }
+                        Err(_) => {}
+                    }
                 }
 
                 Err(_) => {

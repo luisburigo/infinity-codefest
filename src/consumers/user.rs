@@ -59,6 +59,7 @@ impl UserConsumer {
                         },
                         Err(err) => {
                             eprintln!("Failed to parse message: {:?}", err);
+                            delivery.ack(&self.channel)?;
                         }
                     }
                 },

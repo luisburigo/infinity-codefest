@@ -30,8 +30,8 @@ pub async fn list_users() -> impl IntoResponse {
                 StatusCode::OK,
                 Json(ListResponse {
                     // @TODO: Implement count
-                    users: value,
-                    count: 0,
+                    users: value.clone(),
+                    count: value.clone().len() as i32,
                 })
                 .into_response(),
             )

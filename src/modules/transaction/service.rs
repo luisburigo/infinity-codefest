@@ -3,6 +3,9 @@ use axum::http::Error;
 use serde::Serialize;
 
 use redis::{RedisError, RedisResult};
+use secp256k1::{Message, PublicKey, Secp256k1};
+use secp256k1::ecdsa::Signature;
+use sha3::{Digest, Keccak256};
 use crate::database::redis::redis_client;
 use crate::modules::user::service::{create_user, get_user};
 use crate::types::transaction::types::{Transaction, TransactionStatus};
@@ -106,8 +109,8 @@ pub fn create_transaction(mut payload: Transaction) -> Result<Transaction, Redis
     let receiver_key = format!("{}{}", "transactions:".to_owned(), receiver_id);
     let tx_key = format!("{}{}", "transaction:".to_owned(), tx_id);
 
-    db.rpush::<String, String, ()>(sender_key.clone(), tx_key.clone()).expect("Failed to add transaction to sender list");
-    db.rpush::<String, String, ()>(receiver_key.clone(), tx_key.clone()).expect("Failed to add transaction to receiver list");
+    db.rpush::<String, String, ()>(sender_key.clone(), tx_id.to_string()).expect("Failed to add transaction to sender list");
+    db.rpush::<String, String, ()>(receiver_key.clone(), tx_id.to_string()).expect("Failed to add transaction to receiver list");
 
     let serialized_data = serde_json::to_string(&payload).unwrap();
     db.set::<String, String, ()>(tx_key.clone(), serialized_data).expect("Failed to add transaction to transaction list");
@@ -244,11 +247,7 @@ pub fn get_transactions_by_status(user_id: String, status: TransactionStatus) ->
         })
     } else {
         for item in res {
-            let x = if item.contains("transaction:") {
-                item
-            } else {
-                format!("{}{}", "transaction:".to_owned(), item)
-            };
+            let x = format!("{}{}", "transaction:".to_owned(), item);
             let transaction: RedisResult<String> = db.get(x);
 
             match transaction {
