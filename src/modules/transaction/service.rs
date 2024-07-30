@@ -80,6 +80,7 @@ pub fn create_transaction(mut payload: Transaction) -> Result<Transaction, Redis
             }
             false => {
                 payload.status = Some(TransactionStatus::Failed);
+                payload.reason = Some("Insufficient balance".to_string());
                 eprintln!("Transaction failed: Insufficient balance");
             }
         }
@@ -87,6 +88,8 @@ pub fn create_transaction(mut payload: Transaction) -> Result<Transaction, Redis
         // eprintln!("----------------------\n");
     } else {
         payload.status = Some(TransactionStatus::Failed);
+
+        payload.reason = Some("Sender or receiver not found".to_string());
         eprintln!("Transaction failed: Sender or receiver not found");
     }
 
