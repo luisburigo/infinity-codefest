@@ -36,7 +36,7 @@ pub async fn list_users() -> impl IntoResponse {
         }
         Err(_) => {
             (StatusCode::NOT_FOUND, Json(ErrorResponse {
-                message: "User not found".to_string(),
+                message: "No users".to_string(),
             }).into_response())
         }
     }
