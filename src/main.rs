@@ -57,10 +57,11 @@ async fn main() {
                         user_producer.publish(user).expect("Pending Error");
                     }
                     UserEventMessage::Pending(payload) => {
-                        let user = payload.to_user();
+                        let mut user = payload.to_user();
                         match user.clone().status.unwrap() {
                             UserStatus::Success => {
                                 // println!("User created: {:?}", user.id);
+                                user.status = Some(UserStatus::Approved);
                                 create_user(user.clone());
                                 user_producer.publish(user.clone()).expect("Success Error");
                             }
